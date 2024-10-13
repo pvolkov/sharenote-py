@@ -23,16 +23,16 @@ HOST = '0.0.0.0'
 flask_app = Flask(__name__)
 CORS(flask_app)
 
-def slugify(value):
-    value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore').decode('ascii')
-    value = re.sub('[^\w\s-]', '', value).strip().lower()
-    return re.sub('[-\s]+', '-', value)
+# def slugify(value):
+#     value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore').decode('ascii')
+#     value = re.sub('[^\w\s-]', '', value).strip().lower()
+#     return re.sub('[-\s]+', '-', value)
 
 def gen_short_code(title):
     string = title + settings.SECRET_API_KEY
     hash_object = hashlib.sha256(string.encode())
     digest = hash_object.hexdigest()
-    return digest[:6]
+    return digest[:16]
 
 def check_auth(headers):
     nonce = request.headers.get('x-sharenote-nonce', '')
@@ -192,8 +192,9 @@ def create_note():
 
     if not filename:
         short_code = gen_short_code(title)
-        slug = slugify(title)
-        filename = slug + '-' + short_code
+        #slug = slugify(title)
+        #filename = slug + '-' + short_code
+        filename = '-' + short_code
         logging.info('Generating new filename: %s', filename)
 
     if re.search('[^a-z0-9_-]', filename):
@@ -205,7 +206,7 @@ def create_note():
     if title.lower() == 'share note index':
         filename = 'index'
 
-    with open('static/' + filename + '.html', 'w') as f:
+    with open('static/' + filename + '.html', 'w', encoding='utf-8') as f:
         f.write(html)
 
     return dict(success=True, url=settings.SERVER_URL + '/' + filename)
